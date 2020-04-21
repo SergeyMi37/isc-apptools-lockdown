@@ -2,7 +2,7 @@
 ## isc-apptools-lockdown
 [![Gitter](https://img.shields.io/badge/Available%20on-Intersystems%20Open%20Exchange-00b2a9.svg)](https://openexchange.intersystems.com/package/isc-apptools-lockdown)
 
-Application to the LockedDown system, if it was installed with the initial security settings, minimum or normal. You can get and study the description of the method parameters with such a command, like any other element of any other class.
+A program to enhance security and create users and add SQL privileges.
 
 ## Installation with ZPM
 
