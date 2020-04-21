@@ -1,26 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-  <Document name="contest-rest-template.ZPM">
+  <Document name="isc-apptools-lockdown.ZPM">
     <Module>
-      <Name>contest-rest-template</Name>
-      <Version>1.0.3</Version>
+      <Name>isc-apptools-lockdown</Name>
+      <Version>1.0.1</Version>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
-      
-      <Resource Name="Sample.PKG"/>
-     
-       <CSPApplication 
-        Url="/crud"
-        Recurse="1"
-        MatchRoles=":{$dbrole}"
-        PasswordAuthEnabled="0"
-        UnauthenticatedEnabled="0"
-        DispatchClass="Sample.PersonREST"
-        ServeFiles="1"
-        CookiePath="/crud"
-        UseCookies="2"
-       />
+        <Resource Name="App.PKG"/>
+            
     </Module>
-    
   </Document>
 </Export>

@@ -1,144 +1,99 @@
-## rest-api-contest-template
-This is a template for for a InterSystems IRIS REST API Contest.
-It has an example of REST API with CRUD actions for a Sample Person peristent class.
+![](https://github.com/SergeyMi37/isc-apptools-admin/blob/master/doc/favicon.ico)
+## isc-apptools-lockdown
+[![Gitter](https://img.shields.io/badge/Available%20on-Intersystems%20Open%20Exchange-00b2a9.svg)](https://openexchange.intersystems.com/package/isc-apptools-admin-1)
 
-## Inspiration
-To make an easy template to start building REST API in IRIS
-
-## What it does
-Creates /crud web app in IRIS and CRUD endpoints to play with persistent data in Sample.Person class. 
-It uses [swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) module to provide documentation and test environment for API.
-![rest_contest](https://user-images.githubusercontent.com/2781759/79133636-084c6b80-7db5-11ea-8a2c-eab346ea70f9.gif)
-
-
-## Challenges I ran into
-no challenges
-
-## Accomplishments that I proud of
-Easy template with self documented API spec installed with one ZPM command or docker-compose build
-
-## What I learned
-a lot!
-
-## Built with
-Using VSCode and ObjectScript plugin, IRIS Community Edition in Docker, ZPM, IRIS openapi API
+Application tools for technical support and DBMS administrator. View arrays, execute queries, including JDBC/ODBC, sending results to email as XLS files. A few simple graphs on the protocols of the system.
 
 ## Installation with ZPM
 
-zpm:USER>install rest-api-contest-template
+zpm:USER>install isc-apptools-lockdown
 
 ## Installation with Docker
 
 ## Prerequisites
 Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker desktop](https://www.docker.com/products/docker-desktop) installed.
 
-
-Clone/git pull the repo into any local directory e.g. like it is shown below:
+## Installation 
+Clone/git pull the repo into any local directory
 
 ```
-$ git clone git@github.com:intersystems-community/rest-api-contest-template.git
+$ git clone https://github.com/SergeyMi37/isc-apptools-admin.git
 ```
 
 Open the terminal in this directory and run:
 
 ```
-$ docker-compose up -d --build
+$ docker-compose build
 ```
 
-## How to Work With it
-
-This template creates /crud REST web-application on IRIS which implements 4 types of communication: GET, POST, PUT and DELETE aka CRUD operations. 
-The API is available on localhost:52773/crud/
-This REST API goes with  OpenAPI (swagger) documentation. you can check it localhost:52773/crud/_spec
-THis spec can be examined with different tools, such as [SwaggerUI](https://swagger.io/tools/swagger-ui/), [Postman](postman.com), etc.
-Or you can install [swagger-ui](https://openexchange.intersystems.com/package/iris-web-swagger-ui) with:
-```
-zpm:IRISAPP>install swagger-ui
-``` 
-And check the documentation on localhost:52773/swagger-ui/index.html
-
-
-# Testing GET requests
-
-To test GET you need to have some data. You can create it with POST request (see below), or you can create some fake testing data. to do that open IRIS terminal and call:
+3. Run the IRIS container with your project:
 
 ```
-IRISAPP>do ##class(Sample.Person).AddTestData(10)
-```
-This will create 10 random records in Sample.Person class.
-
-
-You can get swagger Open API 2.0 documentation on:
-```
-localhost:yourport/_spec
+$ docker-compose up -d
 ```
 
-This REST API exposes two GET requests: all the data and one record.
-To get all the data in JSON call:
+## How to Test it
+Open IRIS terminal:
 
 ```
-localhost:52773/crud/persons/all
+$ docker-compose exec iris iris session iris
 ```
 
-To request the data for a particular record provide the id in GET request like 'localhost:52773/crud/persons/id' . E.g.:
-
+## Increasing security settings
+You can replace the shared password if the password of the predefined system users has been compromised
 ```
-localhost:52773/crud/persons/1
-```
-
-This will return JSON data for the person with ID=1, something like that:
-
-```
-{"Name":"Elon Mask","Title":"CEO","Company":"Tesla","Phone":"123-123-1233","DOB":"1982-01-19"}
+IRISAPP>do ##class(App.LockDown).ChangePassword("NewPass231",##class(App.LockDown).GetPreparedUsers())
 ```
 
-# Testing POST request
-
-Create a POST request e.g. in Postman with raw data in JSON. e.g.
-
+Application to the LockedDown system, if it was installed with the initial security settings, minimum or normal.
+You can get and study the description of the method parameters with such a command, like any other element of any other class.
 ```
-{"Name":"Elon Mask","Title":"CEO","Company":"Tesla","Phone":"123-123-1233","DOB":"1982-01-19"}
-```
+IRISAPP>write ##class(App.msg).man("App.LockDown).Apply")
 
-Adjust the authorisation if needed - it is basic for container with default login and password for IRIR Community edition container
+Increase system security to LockDown
+The method disables services and applications as in LockDown. Deletes the namespaces "DOCBOOK", "ENSDEMO", "SAMPLES"
+The method enables auditing and configures registration of all events in the portal, except for switching the log
+and modification of system properties
+For all predefined users, change the password and change the properties as in LockDown
+        newPassword - new single password instead of SYS. For LockDown security level, it has an 8.32ANP pattern
+        sBindings = 1 Service% service_bindings enable
+        sCachedirect = 1 Service% service_cachedirect enable
+        InactiveLimit = 90
+        DemoDelete = 0 Demoens, Samples namespaces are being deleted
+		
+        AuditOn = 1
+        sECP = 1 Service% service_ecp enable
+        sBindingsIP - list of ip addresses with a semicolon for which to allow CacheStudio connection.
 
-and send the POST request to localhost:52773/crud/persons/
-
-This will create a record in Sample.Person class of IRIS.
-
-# Testing PUT request
-
-PUT request could be used to update the records. This needs to send the similar JSON as in POST request above supplying the id of the updated record in URL.
-E.g. we want to change the record with id=5. Prepare in Postman the JSON in raw like following:
-
-```
-{"Name":"Jeff Besos","Title":"CEO","Company":"Amazon","Phone":"123-123-1233","DOB":"1982-01-19"}
-```
-
-and send the put request to:
-```
-localhost:52773/crud/persons/5
-```
-
-# Testing DELETE request
-
-For delete request this REST API expects only the id of the record to delete. E.g. if the id=5 the following DELETE call will delete the record:
-
-```
-localhost:52773/crud/persons/5
+For ECP configurations, you need to add the addresses of all servers and clients to allow connection on% Net.RemoteConnection to remove "abandoned" tasks
+        sCachedirectIP - list of ip addresses with a semicolon for which to allow legacy applications connection.
+        sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
+        AuthLDAP = 1 In addition to the password, also enable LDAP authentication
+...
 ```
 
-## How to start coding
-This is a template, so you can use a template button on Github to create your own copy of this repository.
-The repository is ready to code in VSCode with ObjectScript plugin.
-Install [VSCode](https://code.visualstudio.com/) and [ObjectScript](https://marketplace.visualstudio.com/items?itemName=daimor.vscode-objectscript) plugin and open the folder in VSCode.
-Once you start IRIS container VSCode connects to it and you can edit, compile and debug ObjectScript code.
-Open /src/cls/PackageSample/ObjectScript.cls class and try to make changes - it will be compiled in running IRIS docker container.
+Apply Security settings to "LockDown"
+```
+IRISAPP>do ##class(App.LockDown).Apply("NewPassword123",.msg,1,1,0,0)
 
-Feel free to delete PackageSample folder and place your ObjectScript classes in a form
-/src/cls/Package/Classname.cls
+Applications and services will be authenticated by password
+Password is reset to predefined users
+Modification of service properties:
+%service_cachedirect: Error=ERROR #787: Service %Service_CacheDirect not allowed by license
+Passwords are created for all CSP applications.
+There is a modification of the basic system settings
+Event Setup AUDIT :
+%System/%DirectMode/DirectMode changed
+%System/%Login/Login changed
+%System/%Login/Logout changed
+%System/%Login/Terminate changed
+%System/%Security/Protect changed
+%System/%System/JournalChange changed
+%System/%System/RoutineChange changed
+%System/%System/SuspendResume changed
 
-The script in Installer.cls will import everything you place under /src/cls into IRIS.
+```
 
-## Collaboration 
-Any collaboration is very welcome! Fork and send Pull requests!
+All other features of the interface part of the software solution can be found in the 
+[document](https://github.com/SergeyMi37/isc-apptools-admin/blob/master/doc/Documentation%20AppTools.pdf)
+ or in an [article of a Russian resource](https://habr.com/en/post/436042/)
