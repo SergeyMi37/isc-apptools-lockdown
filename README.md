@@ -1,8 +1,8 @@
-![](https://github.com/SergeyMi37/isc-apptools-admin/blob/master/doc/favicon.ico)
+![](https://github.com/SergeyMi37/isc-apptools-lockdown/blob/master/doc/favicon.ico)
 ## isc-apptools-lockdown
-[![Gitter](https://img.shields.io/badge/Available%20on-Intersystems%20Open%20Exchange-00b2a9.svg)](https://openexchange.intersystems.com/package/isc-apptools-admin-1)
+[![Gitter](https://img.shields.io/badge/Available%20on-Intersystems%20Open%20Exchange-00b2a9.svg)](https://openexchange.intersystems.com/package/isc-apptools-lockdown)
 
-Application tools for technical support and DBMS administrator. View arrays, execute queries, including JDBC/ODBC, sending results to email as XLS files. A few simple graphs on the protocols of the system.
+Application to the LockedDown system, if it was installed with the initial security settings, minimum or normal. You can get and study the description of the method parameters with such a command, like any other element of any other class.
 
 ## Installation with ZPM
 
@@ -17,7 +17,7 @@ Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installi
 Clone/git pull the repo into any local directory
 
 ```
-$ git clone https://github.com/SergeyMi37/isc-apptools-admin.git
+$ git clone https://github.com/SergeyMi37/isc-apptools-lockdown.git
 ```
 
 Open the terminal in this directory and run:
