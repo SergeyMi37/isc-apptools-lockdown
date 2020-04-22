@@ -25,6 +25,7 @@ Class App.Security.LockDown [ Abstract ]
 /// 	d ##class(App.Security.LockDown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
 ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
 {
+	set userlist=..GetPreparedUsers()
 	new $namespace
 	set $namespace="%SYS"
 	write !,"Applications and services will be authenticated by "_$s('AuthLDAP:"password",1:"password and LDAP")
@@ -35,7 +36,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	if newPassword'="" {
 		if newPassword'?8.32ANP s text="Password does not match the pattern 8.32ANP" write !,text QUIT $$$ERROR(text)
 		write !,"Password is reset to predefined users"
-		set tSC=##class(App.Security.LockDown).ChangePassword(newPassword, ##class(App.Security.LockDown).GetPreparedUsers())
+		set tSC=..ChangePassword(newPassword, userlist)
 		if '$$$ISOK(tSC) QUIT $$$ERROR(tSC)
 		w !,"OK"
 	}
@@ -224,36 +225,30 @@ ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
 }
 
 /// Helper method to add privileges to users
-/// w ##class(App.Security.LockDown).addSQLPrivilege($namespace, "1,ZPM.Package", "s", "test3", 0, $username)
-/// w ##class(App.Security.LockDown).addSQLPrivilege($namespace, "1,App.Log", "s", "test3", 0, $username)
 /// select * from Security.SQLPrivileges where Grantee='test2' and SQLObject['ZPM'
-/// ID	Grantable	Grantee	Grantor	Namespace	Privilege	SQLObject	SQLPrivString
-/// USER||1,ZPM.Package||s||test2||_SYSTEM	0	test2	_SYSTEM	USER	SELECT	1,ZPM.Package	1,ZPM.Package||s||test2||_SYSTEM
-ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivilege As %String, pGrantee As %String, pGrantable As %Boolean = 0, pGrantor As %String = "_Ensemble") As %Status
+ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivilege As %String, pGrantee As %String, pGrantable As %Boolean = 0, pGrantor As %String = "_system") As %Status
 {
 	new $namespace
 	set $namespace="%SYS"
 	Set tStatus = $$$OK
-	For i=1:1:$l(pPrivilege) {
-		Set tPrivilege = $e(pPrivilege,i)
-		If '##class(Security.SQLPrivileges).IDKeyExists(pNamespace, pSQLObject, tPrivilege, pGrantee, pGrantor) {
-			Set tSQLPriv = ##class(Security.SQLPrivileges).%New()
-			Set tSQLPriv.Namespace = pNamespace
-			Set tSQLPriv.SQLObject = pSQLObject
-			Set tSQLPriv.Grantable = pGrantable
-			Set tSQLPriv.Grantee = pGrantee
-			Set tSQLPriv.Privilege = tPrivilege
-			Set tSQLPriv.Grantor = pGrantor
-			Set tStatus = tSQLPriv.%Save()
-			If $$$ISERR(tStatus) Quit
-		}
+	Set tPrivilege = $e(pPrivilege,1)
+	If '##class(Security.SQLPrivileges).IDKeyExists(pNamespace, pSQLObject, tPrivilege, pGrantee, pGrantor) {
+		Set tSQLPriv = ##class(Security.SQLPrivileges).%New()
+		Set tSQLPriv.Namespace = pNamespace
+		Set tSQLPriv.SQLObject = pSQLObject
+		Set tSQLPriv.Grantable = pGrantable
+		Set tSQLPriv.Grantee = pGrantee
+		Set tSQLPriv.Privilege = tPrivilege
+		Set tSQLPriv.Grantor = pGrantor
+		Set tStatus = tSQLPriv.%Save()
+		If $$$ISERR(tStatus) Quit
 	}
 	Quit tStatus
 }
 
 /// Create a security user
 /// w ##class(App.Security.LockDown).CreateUser("test3", "%DB_IRISSYS,%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
-ClassMethod CreateUser(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, pNamespace As %String, pRoutine As %String, pExpirationDate As %String, pChangePassword As %Boolean, pEnabled As %Boolean, pComment As %String, pFlags As %String = 1)
+ClassMethod CreateUser(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, pNamespace As %String, pRoutine As %String = "", pExpirationDate As %String = "", pChangePassword As %Boolean = 0, pEnabled As %Boolean = 1, pComment As %String = "", pFlags As %String = 1)
 {
 	new $namespace
 	set $namespace="%SYS"
@@ -300,6 +295,50 @@ Exit
 Trap
 	Set $ZT="",tSC=$$$ERROR($$$ObjectScriptError,$ZE)
 	Goto Exit
+}
+
+/// Create ZPM user from _system
+/// w ##class(App.Security.LockDown).CreateZMPUserFrom("test2", "%DB_IRISSYS,%DB_REGISTRY", "test2", "ZMP registry user")
+ClassMethod CreateZMPUserFrom(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, from As %String = "_system")
+{
+	new $namespace
+	set $namespace="%SYS"
+	Set tSC = ##class(Security.Users).Copy(from, pUsername, pFullName)
+	If $$$ISERR(tSC) q tSC
+	#dim tProperties
+	Set tProperties("Roles")=pRoles
+	Set tProperties("Password")=pPassword
+	Set tProperties("ChangePassword")=0
+	Set tProperties("Enabled")=1
+	Set tSC = ##class(Security.Users).Modify(pUsername, .tProperties)
+	q tSC
+}
+
+/// Create ZPM user and LockDown
+/// w ##class(App.Security.LockDown).Implement("UserZPM","PasswordUserZMP2","IRISAPP","NewPasswordFofSysUsers123")
+ClassMethod Implement(pUsername As %String, pPassword As %String, NamespaceRegistry, NewPassSys)
+{
+	// 1. Cteate user from _system
+	set tSC= ##class(App.Security.LockDown).CreateUser(pUsername, "%DB_"_NamespaceRegistry, pPassword, "ZMP registry user",NamespaceRegistry)
+	If $$$ISERR(tSC) q tSC
+	w !,"Create user "_pUsername
+
+	// 2. Add privelege
+	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "1,ZPM.Package", "s", pUsername)
+	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "1,ZPM.Package_dependencies", "s", pUsername)
+	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "1,ZPM_Analytics.Event", "s", pUsername)
+	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "9,ZPM.Package_Extent", "e", pUsername)
+	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "9,ZPM_Analytics.Event_Extent", "e", pUsername)
+	If $$$ISERR(tSC) q tSC
+	w !,"Add priveleges "
+	
+	// 4. LockDown 
+	set tSC= ##class(App.Security.LockDown).Apply(NewPassSys)
+
+	// 3. AutheEnabled = 96 ; Password,Unauthenticated
+	set prop("AutheEnabled")=96
+	set tSC=##class(Security.Applications).Modify("/registry",.prop)
+	q tSC
 }
 
 }
