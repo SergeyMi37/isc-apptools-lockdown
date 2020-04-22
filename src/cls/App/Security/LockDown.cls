@@ -37,6 +37,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 		write !,"Password is reset to predefined users"
 		set tSC=##class(App.Security.LockDown).ChangePassword(newPassword, ##class(App.Security.LockDown).GetPreparedUsers())
 		if '$$$ISOK(tSC) QUIT $$$ERROR(tSC)
+		w !,"OK"
 	}
 	write !,"Modification of service properties:"
 	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
@@ -79,6 +80,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 			set tSC=##class(Security.Services).Modify(name,.prop)
 			if '$$$ISOK(tSC) write !,name_": Error="_$SYSTEM.Status.GetErrorText(tSC)
 		}
+		w !,"OK"
 	}
 	write !,"Passwords are created for all CSP applications."
 	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
@@ -110,6 +112,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 		 set tSC=##class(Security.Applications).Modify(CSP,.prop)
 		 if '$$$ISOK(tSC) write !,csp_" : Error="_$SYSTEM.Status.GetErrorText(tSC)
 		}
+	w !,"OK"
 	}
 	if DemoDelete {
 		write !,"Demo namespaces are being deleted."
@@ -119,6 +122,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 			if $$$ISERR(tSC) set text="Delete Error "_name_" :"_$system.Status.GetErrorText(tSC) w !,text
 			if $$$ISOK(tSC) write !,"Deleted "_name
 		}
+		w !,"OK"
 	}
 	write !,"There is a modification of the basic system settings"
 	#dim ss As Security.System  = ##class(Security.System).%OpenId("SYSTEM")
@@ -127,6 +131,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	set ss.InactiveLimit=InactiveLimit
 	set tSC=ss.%Save()
 	if '$$$ISOK(tSC) s text="Error setting basic security settings :"_$SYSTEM.Status.GetErrorText(tSC)  write !,text QUIT $$$ERROR(text)
+	w !,"OK"
 	if AuditOn {
 		write !,"Event Setup AUDIT :"
 		Set rs = ##class(%ResultSet).%New("Security.Events:ListActivate")
@@ -178,6 +183,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 		}
 		do rs.Close()
 	}
+	w !,"SUCSESS"
 	quit $$$OK
 }
 
@@ -246,7 +252,7 @@ ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivi
 }
 
 /// Create a security user
-/// w ##class(App.Security.LockDown).CreateUser("test3", "%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
+/// w ##class(App.Security.LockDown).CreateUser("test3", "%DB_IRISSYS,%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
 ClassMethod CreateUser(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, pNamespace As %String, pRoutine As %String, pExpirationDate As %String, pChangePassword As %Boolean, pEnabled As %Boolean, pComment As %String, pFlags As %String = 1)
 {
 	new $namespace
