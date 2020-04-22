@@ -1,7 +1,5 @@
-Include App.LogMacro
-
 /// Security utilities
-Class App.LockDown [ Abstract ]
+Class App.Security.LockDown [ Abstract ]
 {
 
 /// Increase system security to LockDown
@@ -23,8 +21,8 @@ Class App.LockDown [ Abstract ]
 /// 	sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
 /// 	AuthLDAP = 1 In addition to the password, also enable LDAP authentication
 /// 	Application example:
-/// 	d ##class(App.LockDown).Apply("NewPassword123",.msg,1,1,0,0,0,0,"127.0.0.1","127.0.0.1")
-/// 	d ##class(App.LockDown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
+/// 	d ##class(App.Security.LockDown).Apply("NewPassword123",.msg,1,1,0,0,0,0,"127.0.0.1","127.0.0.1")
+/// 	d ##class(App.Security.LockDown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
 ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
 {
 	new $namespace
@@ -37,7 +35,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	if newPassword'="" {
 		if newPassword'?8.32ANP s text="Password does not match the pattern 8.32ANP" write !,text QUIT $$$ERROR(text)
 		write !,"Password is reset to predefined users"
-		set tSC=##class(App.security).ChangePassword(newPassword, ##class(App.security).GetPreparedUsers())
+		set tSC=##class(App.Security.LockDown).ChangePassword(newPassword, ##class(App.Security.LockDown).GetPreparedUsers())
 		if '$$$ISOK(tSC) QUIT $$$ERROR(tSC)
 	}
 	write !,"Modification of service properties:"
@@ -183,14 +181,14 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	quit $$$OK
 }
 
-/// do ##class(App.LockDown).GetPreparedUsers()
+/// do ##class(App.Security.LockDown).GetPreparedUsers()
 ClassMethod GetPreparedUsers() As %String
 {
   q "Admin,CSPSystem,IAM,SuperUser,UnknownUser,_Ensemble,_SYSTEM"
 }
 
 /// Change password for userlist
-/// do ##class(App.LockDown).ChangePassword("msw", ##class(App.security).GetPreparedUsers())
+/// do ##class(App.Security.LockDown).ChangePassword("msw", ##class(App.Security.LockDown).GetPreparedUsers())
 ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
 {
 	new $namespace
@@ -220,7 +218,8 @@ ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
 }
 
 /// Helper method to add privileges to users
-/// w ##class(App.LockDown).addSQLPrivilege($namespace, "1,ZPM.Package", "s", "test3", 0, $username)
+/// w ##class(App.Security.LockDown).addSQLPrivilege($namespace, "1,ZPM.Package", "s", "test3", 0, $username)
+/// w ##class(App.Security.LockDown).addSQLPrivilege($namespace, "1,App.Log", "s", "test3", 0, $username)
 /// select * from Security.SQLPrivileges where Grantee='test2' and SQLObject['ZPM'
 /// ID	Grantable	Grantee	Grantor	Namespace	Privilege	SQLObject	SQLPrivString
 /// USER||1,ZPM.Package||s||test2||_SYSTEM	0	test2	_SYSTEM	USER	SELECT	1,ZPM.Package	1,ZPM.Package||s||test2||_SYSTEM
@@ -247,7 +246,7 @@ ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivi
 }
 
 /// Create a security user
-/// w ##class(App.LockDown).CreateUser("test3", "%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
+/// w ##class(App.Security.LockDown).CreateUser("test3", "%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
 ClassMethod CreateUser(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, pNamespace As %String, pRoutine As %String, pExpirationDate As %String, pChangePassword As %Boolean, pEnabled As %Boolean, pComment As %String, pFlags As %String = 1)
 {
 	new $namespace

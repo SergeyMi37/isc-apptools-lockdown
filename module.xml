@@ -6,7 +6,7 @@
       <Version>1.0.1</Version>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
-        <Resource Name="App.PKG"/>
+        <Resource Name="App.Security.PKG"/>
             
     </Module>
   </Document>
