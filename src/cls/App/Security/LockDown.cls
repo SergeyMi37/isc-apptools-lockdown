@@ -56,7 +56,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 			continue:(name="%service_mirror")||(name="%service_shadow")||(name="%service_datacheck")
 			kill prop
 			set prop("Enabled")=0
-			if name=serviceCSP||(name="%service_terminal")||(name="%service_console") {
+			if name=serviceCSP||(name="%service_terminal")||(name="%service_console")||(name="%service_login") {
 				set prop("Enabled")=1 ; turn on
 				if name'=serviceCSP s prop("AutheEnabled")=AutheEnabled
 				else  s prop("AutheEnabled")=96
