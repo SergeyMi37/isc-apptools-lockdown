@@ -25,6 +25,7 @@ Class App.Security.LockDown [ Abstract ]
 /// 	d ##class(App.Security.LockDown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
 ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
 {
+	write !,"Start Lockdown"
 	set userlist=..GetPreparedUsers()
 	new $namespace
 	set $namespace="%SYS"
@@ -55,7 +56,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 			continue:(name="%service_mirror")||(name="%service_shadow")||(name="%service_datacheck")
 			kill prop
 			set prop("Enabled")=0
-			if name=serviceCSP||(name="%service_console")||(name="%service_login") {
+			if name=serviceCSP||(name="%service_terminal")||(name="%service_console") {
 				set prop("Enabled")=1 ; turn on
 				if name'=serviceCSP s prop("AutheEnabled")=AutheEnabled
 				else  s prop("AutheEnabled")=96
@@ -184,7 +185,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 		}
 		do rs.Close()
 	}
-	w !,"SUCSESS"
+	write !,"Stop Lockdown SUCSESS"
 	quit $$$OK
 }
 
@@ -311,33 +312,6 @@ ClassMethod CreateZMPUserFrom(pUsername As %String, pRoles As %String, pPassword
 	Set tProperties("ChangePassword")=0
 	Set tProperties("Enabled")=1
 	Set tSC = ##class(Security.Users).Modify(pUsername, .tProperties)
-	q tSC
-}
-
-/// Create ZPM user and LockDown
-/// w ##class(App.Security.LockDown).Implement("UserZPM","PasswordUserZMP2","IRISAPP","NewPasswordFofSysUsers123")
-ClassMethod Implement(pUsername As %String, pPassword As %String, NamespaceRegistry, NewPassSys)
-{
-	// 1. Cteate user from _system
-	set tSC= ##class(App.Security.LockDown).CreateUser(pUsername, "%DB_"_NamespaceRegistry, pPassword, "ZMP registry user",NamespaceRegistry)
-	If $$$ISERR(tSC) q tSC
-	w !,"Create user "_pUsername
-
-	// 2. Add privelege
-	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "1,ZPM.Package", "s", pUsername)
-	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "1,ZPM.Package_dependencies", "s", pUsername)
-	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "1,ZPM_Analytics.Event", "s", pUsername)
-	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "9,ZPM.Package_Extent", "e", pUsername)
-	set tSC=##class(App.Security.LockDown).addSQLPrivilege(NamespaceRegistry, "9,ZPM_Analytics.Event_Extent", "e", pUsername)
-	If $$$ISERR(tSC) q tSC
-	w !,"Add priveleges "
-	
-	// 4. LockDown 
-	set tSC= ##class(App.Security.LockDown).Apply(NewPassSys)
-
-	// 3. AutheEnabled = 96 ; Password,Unauthenticated
-	set prop("AutheEnabled")=96
-	set tSC=##class(Security.Applications).Modify("/registry",.prop)
 	q tSC
 }
 
