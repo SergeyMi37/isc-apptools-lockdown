@@ -1,7 +1,9 @@
 ![](https://github.com/SergeyMi37/isc-apptools-lockdown/blob/master/doc/favicon.ico)
 ## isc-apptools-lockdown
 [![Gitter](https://img.shields.io/badge/Available%20on-Intersystems%20Open%20Exchange-00b2a9.svg)](https://openexchange.intersystems.com/package/isc-apptools-lockdown)
-
+[![GitHub all releases](https://img.shields.io/badge/Available%20on-GitHub-black)](https://github.com/SergeyMi37/isc-apptools-lockdown)
+[![Habr](https://img.shields.io/badge/Available%20article%20on-Intersystems%20Community-orange)](https://community.intersystems.com/post/increasing-security-intersystems-iris-dbms)
+[![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 A program to enhance security and create users and add SQL privileges.
 
 ## Installation with ZPM
