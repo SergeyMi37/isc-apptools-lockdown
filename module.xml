@@ -3,7 +3,7 @@
   <Document name="isc-apptools-lockdown.ZPM">
     <Module>
       <Name>isc-apptools-lockdown</Name>
-      <Version>1.0.8</Version>
+      <Version>1.0.9</Version>
       <Description>A program to enhance security and create users and add SQL privileges.</Description>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
