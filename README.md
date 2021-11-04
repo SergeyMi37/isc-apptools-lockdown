@@ -45,13 +45,8 @@ $ docker-compose exec iris iris session iris
 ## Increasing security settings
 You can replace the shared password if the password of the predefined system users has been compromised
 ```
-IRISAPP>do ##class(App.LockDown).ChangePassword("NewPass231",##class(App.LockDown).GetPreparedUsers())
+IRISAPP>do ##class(appmsw.security.lockdown).ChangePassword("NewPass231",##class(App.LockDown).GetPreparedUsers())
 ```
-
-Application to the LockedDown system, if it was installed with the initial security settings, minimum or normal.
-You can get and study the description of the method parameters with such a command, like any other element of any other class.
-```
-IRISAPP>write ##class(App.msg).man("App.LockDown).Apply")
 
 Increase system security to LockDown
 The method disables services and applications as in LockDown. Deletes the namespaces "DOCBOOK", "ENSDEMO", "SAMPLES"
@@ -72,12 +67,10 @@ For ECP configurations, you need to add the addresses of all servers and clients
         sCachedirectIP - list of ip addresses with a semicolon for which to allow legacy applications connection.
         sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
         AuthLDAP = 1 In addition to the password, also enable LDAP authentication
-...
-```
 
 Apply Security settings to "LockDown"
 ```
-IRISAPP>do ##class(App.LockDown).Apply("NewPassword123",.msg,1,1,0,0)
+IRISAPP>do ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0)
 
 Applications and services will be authenticated by password
 Password is reset to predefined users
@@ -98,5 +91,5 @@ Event Setup AUDIT :
 ```
 
 All other features of the interface part of the software solution can be found in the 
-[document](https://github.com/SergeyMi37/isc-apptools-admin/blob/master/doc/Documentation%20AppTools.pdf)
+[document](https://community.intersystems.com/post/increasing-security-intersystems-iris-dbms)
  or in an [article of a Russian resource](https://habr.com/en/post/436042/)

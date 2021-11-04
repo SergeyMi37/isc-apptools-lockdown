@@ -313,5 +313,71 @@ ClassMethod CreateZMPUserFrom(pUsername As %String, pRoles As %String, pPassword
 	quit tSC
 }
 
+/// Create new Role
+ClassMethod CreateRole(dbName As %String) As %Status
+{
+   New $Namespace
+   Set $Namespace = "%SYS"
+   Set sc = $$$OK
+   set nameR="%DB_"_dbName,desc="Role for "_nameR 
+	set pResources=nameR_":RW" 
+	if '##class(Security.Resources).Exists(nameR) {
+		Set sc = $$$ADDSC(sc,##class(Security.Resources).Create(nameR,"Resources for "_nameR,"RW"))
+		Quit:$$$ISERR(sc) sc
+	}
+	set pRolesGranted=""
+	if '##class(Security.Roles).Exists(nameR) {
+		Set sc = $$$ADDSC(sc,##class(Security.Roles).Create(nameR,desc,pResources,pRolesGranted))
+		Quit:$$$ISERR(sc) sc
+		write !,"Create new role "_nameR
+	}
+	Return sc
+}
+
+/// Create new Resource
+ClassMethod CreateResource(dbName As %String, Permiss As %String = "RW") As %Status
+{
+   New $Namespace
+   Set $Namespace = "%SYS"
+   Set sc = $$$OK
+   set nameR="%DB_"_dbName,desc="Resource for "_nameR 
+	if '##class(Security.Resources).Exists(nameR) {
+		Set sc = $$$ADDSC(sc,##class(Security.Resources).Create(nameR,desc,Permiss))
+		Quit:$$$ISERR(sc) sc
+		write !,"Create new Resource "_nameR
+	}
+	Return sc
+}
+
+/// Delete Resource
+ClassMethod DeleteResource(dbName As %String) As %Status
+{
+ New $Namespace
+ Set $Namespace = "%SYS"
+ Set sc = $$$OK
+   set nameR="%DB_"_dbName
+	if ##class(Security.Resources).Exists(nameR) {
+		Set sc = $$$ADDSC(sc,##class(Security.Resources).Delete(nameR))
+		Quit:$$$ISERR(sc) sc
+		write !,"Delete Resource "_nameR
+	}
+	Return sc
+}
+
+/// Delete Role
+ClassMethod DeleteRole(dbName As %String) As %Status
+{
+ New $Namespace
+ Set $Namespace = "%SYS"
+ Set sc = $$$OK
+   set nameR="%DB_"_dbName
+	if ##class(Security.Roles).Exists(nameR) {
+		Set sc = $$$ADDSC(sc,##class(Security.Roles).Delete(nameR))
+		Quit:$$$ISERR(sc) sc
+		write !,"Delete role "_nameR
+	}
+	Return sc
+}
+
 }
 
