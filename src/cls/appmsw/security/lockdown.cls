@@ -1,5 +1,5 @@
 /// Security utilities
-Class App.Security.LockDown [ Abstract ]
+Class appmsw.security.lockdown [ Abstract ]
 {
 
 /// Increase system security to LockDown
@@ -21,8 +21,8 @@ Class App.Security.LockDown [ Abstract ]
 /// 	sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
 /// 	AuthLDAP = 1 In addition to the password, also enable LDAP authentication
 /// 	Application example:
-/// 	d ##class(App.Security.LockDown).Apply("NewPassword123",.msg,1,1,0,0,0,0,"127.0.0.1","127.0.0.1")
-/// 	d ##class(App.Security.LockDown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
+/// 	d ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0,0,0,"127.0.0.1","127.0.0.1")
+/// 	d ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
 ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
 {
 	write !,"Start Lockdown"
@@ -31,15 +31,14 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	set $namespace="%SYS"
 	write !,"Applications and services will be authenticated by "_$s('AuthLDAP:"password",1:"password and LDAP")
 	set AutheEnabled=$s(AuthLDAP:2080,1:32) ;password
-	s serviceCSP = $Select($Select($ZVersion["IRIS":1,1:0):"%service_webgateway",1:"%service_csp")
+	set serviceCSP = $Select($Select($ZVersion["IRIS":1,1:0):"%service_webgateway",1:"%service_csp")
 	if DemoDelete,$zv["IRIS" set DemoDelete=0	
-	zn "%sys"
 	if newPassword'="" {
 		if newPassword'?8.32ANP s text="Password does not match the pattern 8.32ANP" write !,text QUIT $$$ERROR(text)
 		write !,"Password is reset to predefined users"
 		set tSC=..ChangePassword(newPassword, userlist)
 		if '$$$ISOK(tSC) QUIT $$$ERROR(tSC)
-		w !,"OK"
+		write !,"OK"
 	}
 	write !,"Modification of service properties:"
 	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
@@ -82,7 +81,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 			set tSC=##class(Security.Services).Modify(name,.prop)
 			if '$$$ISOK(tSC) write !,name_": Error="_$SYSTEM.Status.GetErrorText(tSC)
 		}
-		w !,"OK"
+		write !,"OK"
 	}
 	write !,"Passwords are created for all CSP applications."
 	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
@@ -114,7 +113,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 		 set tSC=##class(Security.Applications).Modify(CSP,.prop)
 		 if '$$$ISOK(tSC) write !,csp_" : Error="_$SYSTEM.Status.GetErrorText(tSC)
 		}
-	w !,"OK"
+	write !,"OK"
 	}
 	if DemoDelete {
 		write !,"Demo namespaces are being deleted."
@@ -124,7 +123,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 			if $$$ISERR(tSC) set text="Delete Error "_name_" :"_$system.Status.GetErrorText(tSC) w !,text
 			if $$$ISOK(tSC) write !,"Deleted "_name
 		}
-		w !,"OK"
+		write !,"OK"
 	}
 	write !,"There is a modification of the basic system settings"
 	#dim ss As Security.System  = ##class(Security.System).%OpenId("SYSTEM")
@@ -133,7 +132,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	set ss.InactiveLimit=InactiveLimit
 	set tSC=ss.%Save()
 	if '$$$ISOK(tSC) s text="Error setting basic security settings :"_$SYSTEM.Status.GetErrorText(tSC)  write !,text QUIT $$$ERROR(text)
-	w !,"OK"
+	write !,"OK"
 	if AuditOn {
 		write !,"Event Setup AUDIT :"
 		Set rs = ##class(%ResultSet).%New("Security.Events:ListActivate")
@@ -189,21 +188,20 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	quit $$$OK
 }
 
-/// do ##class(App.Security.LockDown).GetPreparedUsers()
+/// do ##class(appmsw.security.lockdown).GetPreparedUsers()
 ClassMethod GetPreparedUsers() As %String
 {
-  q "Admin,CSPSystem,IAM,SuperUser,UnknownUser,_Ensemble,_SYSTEM"
+  quit "Admin,CSPSystem,IAM,SuperUser,UnknownUser,_Ensemble,_SYSTEM"
 }
 
 /// Change password for userlist
-/// do ##class(App.Security.LockDown).ChangePassword("msw", ##class(App.Security.LockDown).GetPreparedUsers())
+/// do ##class(appmsw.security.lockdown).ChangePassword("msw", ##class(appmsw.security.lockdown).GetPreparedUsers())
 ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
 {
 	new $namespace
 	set $namespace="%SYS"
 	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
 	set sql="select NameLowerCase FROM Security.Users where NameLowerCase in ('"_$replace($zconvert(UsersList,"L"),",","','")_"')"
-	;w !,sql
 	set tSC=result.Prepare(sql)
 	set:tSC tSC=result.Execute()
 	if '$$$ISOK(tSC) {
@@ -222,7 +220,7 @@ ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
 			if '$$$ISOK(tSC) w !,name_": Error="_$SYSTEM.Status.GetErrorText(tSC)
 		}
 	}
-	q tSC
+	quit tSC
 }
 
 /// Helper method to add privileges to users
@@ -248,14 +246,14 @@ ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivi
 }
 
 /// Create a security user
-/// w ##class(App.Security.LockDown).CreateUser("test3", "%DB_IRISSYS,%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
+/// w ##class(appmsw.security.lockdown).CreateUser("test3", "%DB_IRISSYS,%DB_"_$namespace, "test", "Test user", $namespace, "", "", 0, 1, "Test user")
 ClassMethod CreateUser(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, pNamespace As %String, pRoutine As %String = "", pExpirationDate As %String = "", pChangePassword As %Boolean = 0, pEnabled As %Boolean = 1, pComment As %String = "", pFlags As %String = 1)
 {
 	new $namespace
 	set $namespace="%SYS"
 	#dim tSC As %Status
 	Set tSC=$$$OK,$ZT="Trap"
-	s pNamespace=$zcvt(pNamespace,"U")
+	set pNamespace=$zcvt(pNamespace,"U")
 	Do {
 		#dim tExists As %Boolean
 		Set tExists = ##class(Security.Users).Exists(pUsername)
@@ -299,7 +297,7 @@ Trap
 }
 
 /// Create ZPM user from _system
-/// w ##class(App.Security.LockDown).CreateZMPUserFrom("test2", "%DB_IRISSYS,%DB_REGISTRY", "test2", "ZMP registry user")
+/// w ##class(appmsw.security.lockdown).CreateZMPUserFrom("test2", "%DB_IRISSYS,%DB_REGISTRY", "test2", "ZMP registry user")
 ClassMethod CreateZMPUserFrom(pUsername As %String, pRoles As %String, pPassword As %String, pFullName As %String, from As %String = "_system")
 {
 	new $namespace
@@ -312,7 +310,7 @@ ClassMethod CreateZMPUserFrom(pUsername As %String, pRoles As %String, pPassword
 	Set tProperties("ChangePassword")=0
 	Set tProperties("Enabled")=1
 	Set tSC = ##class(Security.Users).Modify(pUsername, .tProperties)
-	q tSC
+	quit tSC
 }
 
 }
