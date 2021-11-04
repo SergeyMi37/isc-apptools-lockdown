@@ -9,8 +9,14 @@ A program to enhance security and create users and add SQL privileges.
 
 ## Installation with ZPM
 
+If ZPM the current instance is not installed, then in one line you can install the latest version of ZPM.
+```
+zn "%SYS" d ##class(Security.SSLConfigs).Create("z") s r=##class(%Net.HttpRequest).%New(),r.Server="pm.community.intersystems.com",r.SSLConfiguration="z" d r.Get("/packages/zpm/latest/installer"),$system.OBJ.LoadStream(r.HttpResponse.Data,"c")
+```
+If ZPM is installed, then can be set with the command
+```
 zpm:USER>install isc-apptools-lockdown
-
+```
 ## Installation with Docker
 
 ## Prerequisites
@@ -20,32 +26,32 @@ Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installi
 Clone/git pull the repo into any local directory
 
 ```
-$ git clone https://github.com/SergeyMi37/isc-apptools-lockdown.git
+git clone https://github.com/SergeyMi37/isc-apptools-lockdown.git
 ```
 
 Open the terminal in this directory and run:
 
 ```
-$ docker-compose build
+docker-compose build
 ```
 
 3. Run the IRIS container with your project:
 
 ```
-$ docker-compose up -d
+docker-compose up -d
 ```
 
 ## How to Test it
 Open IRIS terminal:
 
 ```
-$ docker-compose exec iris iris session iris
+docker-compose exec iris iris session iris
 ```
 
 ## Increasing security settings
 You can replace the shared password if the password of the predefined system users has been compromised
 ```
-IRISAPP>do ##class(appmsw.security.lockdown).ChangePassword("NewPass231",##class(App.LockDown).GetPreparedUsers())
+USER>do ##class(appmsw.security.lockdown).ChangePassword("NewPass231",##class(appmsw.security.lockdown).GetPreparedUsers())
 ```
 
 Increase system security to LockDown
@@ -70,7 +76,7 @@ For ECP configurations, you need to add the addresses of all servers and clients
 
 Apply Security settings to "LockDown"
 ```
-IRISAPP>do ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0)
+USER>do ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0)
 
 Applications and services will be authenticated by password
 Password is reset to predefined users
