@@ -3,11 +3,52 @@
   <Document name="isc-apptools-lockdown.ZPM">
     <Module>
       <Name>isc-apptools-lockdown</Name>
-      <Version>1.0.8</Version>
+      <Version>1.0.9</Version>
       <Description>A program to enhance security and create users and add SQL privileges.</Description>
+	  <Keywords>lockdown admin</Keywords>
+		<Author>
+		<Person>Mikhaylenko Sergey</Person>
+		<CopyrightDate>2021</CopyrightDate>
+		<License>MIT</License>
+		<Notes>
+			repository:
+				https://github.com/SergeyMi37/isc-apptools-lockdown
+			description:
+				Increase system security to LockDown
+				The method disables services and applications as in LockDown. Deletes the namespaces "DOCBOOK", "ENSDEMO", "SAMPLES"
+				The method enables auditing and configures registration of all events in the portal, except for switching the log
+				and modification of system properties
+				For all predefined users, change the password and change the properties as in LockDown
+						newPassword - new single password instead of SYS. For LockDown security level, it has an 8.32ANP pattern
+						sBindings = 1 Service% service_bindings enable
+						sCachedirect = 1 Service% service_cachedirect enable
+						InactiveLimit = 90
+						DemoDelete = 0 Demoens, Samples namespaces are being deleted
+						
+						AuditOn = 1
+						sECP = 1 Service% service_ecp enable
+						sBindingsIP - list of ip addresses with a semicolon for which to allow CacheStudio connection.
+
+				For ECP configurations, you need to add the addresses of all servers and clients to allow connection on% Net.RemoteConnection to remove "abandoned" tasks
+						sCachedirectIP - list of ip addresses with a semicolon for which to allow legacy applications connection.
+						sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
+						AuthLDAP = 1 In addition to the password, also enable LDAP authentication
+
+				Apply Security settings to "LockDown"
+				USER>do ##class(appmsw.security.lockdown).Apply("NewPassword123")
+				or equivalent
+				USER>zpm "install isc-apptools-lockdown -Dzpm.newpasswd=NewPassword123"
+		</Notes>
+		</Author>
       <Packaging>module</Packaging>
+	  <Default Name="newpasswd" Value="SYS" />
       <SourcesRoot>src</SourcesRoot>
-        <Resource Name="appmsw.security.PKG"/>
+      <Resource Name="appmsw.security.PKG"/>
+	  <Invokes>	
+        <Invoke Class="appmsw.security.lockdown" Method="Apply">	
+          <Arg>${newpasswd}</Arg>
+        </Invoke>
+      </Invokes>
     </Module>
   </Document>
 </Export>

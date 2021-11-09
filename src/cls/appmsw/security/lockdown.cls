@@ -23,8 +23,12 @@ Class appmsw.security.lockdown [ Abstract ]
 /// 	Application example:
 /// 	d ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0,0,0,"127.0.0.1","127.0.0.1")
 /// 	d ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
-ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
+ClassMethod Apply(newPassword = "SYS", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
 {
+	if newPassword=""||(newPassword="SYS") { 
+		write !!,"Password does not match lockdown mode.",!
+		QUIT $$$OK	
+		}
 	write !,"Start Lockdown"
 	set userlist=..GetPreparedUsers()
 	new $namespace
@@ -32,7 +36,7 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 	write !,"Applications and services will be authenticated by "_$s('AuthLDAP:"password",1:"password and LDAP")
 	set AutheEnabled=$s(AuthLDAP:2080,1:32) ;password
 	set serviceCSP = $Select($Select($ZVersion["IRIS":1,1:0):"%service_webgateway",1:"%service_csp")
-	if DemoDelete,$zv["IRIS" set DemoDelete=0	
+	if DemoDelete,$zv["IRIS" set DemoDelete=0
 	if newPassword'="" {
 		if newPassword'?8.32ANP s text="Password does not match the pattern 8.32ANP" write !,text QUIT $$$ERROR(text)
 		write !,"Password is reset to predefined users"
