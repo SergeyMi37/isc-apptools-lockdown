@@ -2,6 +2,90 @@
 Class appmsw.security.lockdown [ Abstract ]
 {
 
+Parameter GN = "^appmsw.security.lockdown";
+
+Parameter GNcustom = "^appmsw.security.custom";
+
+/// do ##class(appmsw.security.lockdown).SetSecurityLevel("minimum","SYS")
+/// do ##class(appmsw.security.lockdown).SetSecurityLevel("normal","Normal321level")
+/// do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","Lockdown321level")
+ClassMethod SetSecurityLevel(level, newPassword = "SYS", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
+{
+	
+	quit:"none"[level||("null"[newPassword) $$$OK
+	if level="lockdown" quit ..Apply(newPassword, .Warn, sBindings, sCachedirect, InactiveLimit, DemoDelete, AuditOn, sECP, sBindingsIP, sCachedirectIP, sECPIP, AuthLDAP)
+	set GN=..#GN
+	if '$lf($lb("minimum","normal","lockdown"),level) set GN=..#GNcustom
+	if '$DATA(@GN@(level)) write !,"Security level '"_level_"' not saved in "_GN,! quit $$$OK
+	write !,"Start switching the security level to the '"_level_"'",!
+	merge State=@GN@(level)
+	set userlist=..GetPreparedUsers()
+
+	new $namespace
+	set $namespace="%SYS"
+
+	write !,"Modification of service properties:"
+	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
+	set tSC=result.Prepare("select NameLowerCase,Enabled,AutheEnabled FROM Security.Services")
+	set:tSC tSC=result.Execute()
+	if '$$$ISOK(tSC) {
+		set text="Service configuration error :"_$SYSTEM.Status.GetErrorText(tSC) write !,text
+		QUIT $$$ERROR(text)
+	}
+	else {
+		while result.Next() {
+			set name=result.Data("NameLowerCase")
+			continue:'$DATA(State("Security.Services",name))
+			kill prop
+			if $DATA(State("Security.Services",name,"Enabled"),val) set:result.Data("Enabled")'=val prop("Enabled")=val
+			if $DATA(State("Security.Services",name,"AutheEnabled"),val) set:result.Data("AutheEnabled")'=val prop("AutheEnabled")=val
+			if $D(prop) {
+				set tSC=##class(Security.Services).Modify(name,.prop)
+				if '$$$ISOK(tSC) write !,name_": Error="_$SYSTEM.Status.GetErrorText(tSC)
+			}
+		}
+		write !,"OK"
+	}
+	write !,"Passwords are created for all CSP applications."
+	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
+	set tSC=result.Prepare("select Name,Enabled,AutheEnabled FROM Security.Applications")
+	set:tSC tSC=result.Execute()
+	if '$$$ISOK(tSC) {
+		set text="Application setup error :"_$SYSTEM.Status.GetErrorText(tSC)  write !,text QUIT $$$ERROR(text)
+	}
+	else {
+		while result.Next() {
+			set name=$zconvert(result.Data("Name"),"L")
+			continue:'$DATA(State("Security.Applications",name))
+			kill prop
+			if $DATA(State("Security.Applications",name,"Enabled"),val) set:result.Data("Enabled")'=val prop("Enabled")=val
+			if $DATA(State("Security.Applications",name,"AutheEnabled"),val) set:result.Data("AutheEnabled")'=val prop("AutheEnabled")=val
+			if $D(prop) {
+				set tSC=##class(Security.Applications).Modify(name,.prop)
+			}
+		 	if '$$$ISOK(tSC) write !,csp_" : Error="_$SYSTEM.Status.GetErrorText(tSC)
+		}
+	write !,"OK"
+	}
+	if $d(State("Security.System")) {
+		write !,"There is a modification of the basic system settings"
+		#dim ss As Security.System  = ##class(Security.System).%OpenId("SYSTEM")
+		if $d(State("Security.System","PasswordPattern"),val) set ss.PasswordPattern=val
+		if $d(State("Security.System","AuditEnabled"),val) set ss.AuditEnabled=val
+		if $d(State("Security.System","InactiveLimit"),val) set ss.InactiveLimit=val
+		set tSC=ss.%Save()
+		if '$$$ISOK(tSC) s text="Error setting basic security settings :"_$SYSTEM.Status.GetErrorText(tSC)  write !,text QUIT $$$ERROR(text)
+		write !,"OK"
+	}
+	if newPassword'="" {
+		write !,"Password is reset to predefined users"
+		set tSC=..ChangePassword(newPassword, userlist, level)
+		if '$$$ISOK(tSC) QUIT $$$ERROR(tSC)
+		write !,"OK"
+	}
+	quit $$$OK
+}
+
 /// Increase system security to LockDown
 /// The method disables services and applications as in LockDown. Deletes the namespaces "DOCBOOK", "ENSDEMO", "SAMPLES"
 /// The method enables auditing and configures registration of all events in the portal, except for switching the log
@@ -23,20 +107,36 @@ Class appmsw.security.lockdown [ Abstract ]
 /// 	Application example:
 /// 	d ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0,0,0,"127.0.0.1","127.0.0.1")
 /// 	d ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0,1,0,"127.0.0.1","127.0.0.1",,1)
-ClassMethod Apply(newPassword = "SYS", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
+ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", InactiveLimit = 90, DemoDelete = 0, AuditOn = 1, sECP = "", sBindingsIP = "", sCachedirectIP = "", sECPIP = "", AuthLDAP = 0) As %Status
 {
-	if newPassword=""||(newPassword="SYS") { 
-		write !!,"Password does not match lockdown mode.",!
-		QUIT $$$OK	
-		}
-	write !,"Start Lockdown"
+	quit:"null"[newPassword $$$OK
+	if (newPassword="SYS") { 
+		quit ..Minimum(newPassword,.Warn, sBindings, sCachedirect, InactiveLimit, DemoDelete, AuditOn, sECP, sBindingsIP, sCachedirectIP, sECPIP, AuthLDAP)
+	}
 	set userlist=..GetPreparedUsers()
 	new $namespace
 	set $namespace="%SYS"
+#define AutheK5CCache		1
+#define AutheK5Prompt		2
+#define AutheK5API			4
+#define AutheK5KeyTab		8
+#define AutheOS				16
+#define AutheCache			32
+#define AutheUnauthenticated 64
+#define AutheKB				 128
+#define AutheKBEncryption	 256
+#define AutheKBIntegrity	 512
+#define AutheSystem			1024
+#define AutheLDAP			2048
 	write !,"Applications and services will be authenticated by "_$s('AuthLDAP:"password",1:"password and LDAP")
-	set AutheEnabled=$s(AuthLDAP:2080,1:32) ;password
-	set serviceCSP = $Select($Select($ZVersion["IRIS":1,1:0):"%service_webgateway",1:"%service_csp")
-	if DemoDelete,$zv["IRIS" set DemoDelete=0
+	set AutheEnabled=$s(AuthLDAP:$$$AutheLDAP,1:$$$AutheCache) ;password
+
+	set serviceCSP = "%service_csp"
+	if $zv["IRIS" {
+		set:DemoDelete DemoDelete=0
+		set serviceCSP = "%service_webgateway"
+	}
+
 	if newPassword'="" {
 		if newPassword'?8.32ANP s text="Password does not match the pattern 8.32ANP" write !,text QUIT $$$ERROR(text)
 		write !,"Password is reset to predefined users"
@@ -62,7 +162,7 @@ ClassMethod Apply(newPassword = "SYS", Warn, sBindings = "", sCachedirect = "", 
 			if name=serviceCSP||(name="%service_terminal")||(name="%service_console")||(name="%service_login") {
 				set prop("Enabled")=1 ; turn on
 				if name'=serviceCSP s prop("AutheEnabled")=AutheEnabled
-				else  s prop("AutheEnabled")=96
+				else  s prop("AutheEnabled")=$$$AutheCache + $$$AutheUnauthenticated
 			}
 			if $G(sBindings),name="%service_bindings" {
 				set prop("Enabled")=1
@@ -72,7 +172,7 @@ ClassMethod Apply(newPassword = "SYS", Warn, sBindings = "", sCachedirect = "", 
 			}
 			if $G(sCachedirect),name="%service_cachedirect" {
 				set prop("Enabled")=1 ; turn on
-				set prop("AutheEnabled")=96
+				set prop("AutheEnabled")=$$$AutheCache + $$$AutheUnauthenticated
 				set Warn($i(Warn))="If the current system does not intend to legacy utility, then it is better to turn off the service "_name
 				set prop("ClientSystems")=sCachedirectIP
 			}
@@ -188,7 +288,7 @@ ClassMethod Apply(newPassword = "SYS", Warn, sBindings = "", sCachedirect = "", 
 		}
 		do rs.Close()
 	}
-	write !,"Stop Lockdown SUCSESS"
+	write !,"Finish Lockdown SUCSESS"
 	quit $$$OK
 }
 
@@ -200,7 +300,7 @@ ClassMethod GetPreparedUsers() As %String
 
 /// Change password for userlist
 /// do ##class(appmsw.security.lockdown).ChangePassword("msw", ##class(appmsw.security.lockdown).GetPreparedUsers())
-ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
+ClassMethod ChangePassword(newPassword = "", UsersList = "", level = "lockdown") As %Status
 {
 	new $namespace
 	set $namespace="%SYS"
@@ -217,9 +317,21 @@ ClassMethod ChangePassword(newPassword = "", UsersList = "") As %Status
 			set name=result.Data("NameLowerCase")
 			;w !,name continue
 			kill prop
-			set prop("Password")=newPassword
-			if name="_system" s prop("Enabled")=0
-			if name="unknownuser" s prop("Roles")="" ; delete all roles
+			if level="lockdown" {
+				set prop("Password")=newPassword
+				if name="_system" s prop("Enabled")=0
+				if name="unknownuser" s prop("Roles")="" ; delete all roles
+			}
+			elseif level="normal" {
+				set prop("Password")=newPassword
+				if name="_system" s prop("Enabled")=1
+				if name="unknownuser" s prop("Roles")="" ; delete all roles
+			}
+			elseif level="minimum" {
+				set prop("Password")=newPassword
+				if name="_system" s prop("Enabled")=1
+				if name="unknownuser" s prop("Roles")="%All" ; delete all roles
+			}
 			set tSC=##class(Security.Users).Modify(name,.prop)
 			if '$$$ISOK(tSC) w !,name_": Error="_$SYSTEM.Status.GetErrorText(tSC)
 		}
@@ -381,6 +493,86 @@ ClassMethod DeleteRole(dbName As %String) As %Status
 		write !,"Delete role "_nameR
 	}
 	Return sc
+}
+
+/// Save Current Security Level
+/// do ##class(appmsw.security.lockdown).SaveSecLevel(1,"minimum",,"d:\_proj\!\minimum.xml")
+/// do ##class(appmsw.security.lockdown).SaveSecLevel(1,"normal",,"d:\_proj\!\normal.xml")
+/// do ##class(appmsw.security.lockdown).SaveSecLevel(1,"lockdown",,"d:\_proj\!\lock.xml")
+/// do ##class(appmsw.security.lockdown).SaveSecLevel(1,"Custom",,"d:\_proj\!\Custom.xml")
+ClassMethod SaveSecLevel(resave = 0, level = "minimum", GN = {..#GN}, pFileName = "") As %Status
+{
+	if '$lf($lb("minimum","normal","lockdown"),level) set GN=..#GNcustom
+	KILL @GN@(level)
+	do ##class(appmsw.security.lockdown).SaveProperties(resave,"Security.Services",.out,level)
+	do ##class(appmsw.security.lockdown).SaveProperties(resave,"Security.Applications",.out,level)
+	set cns=$namespace
+	new $namespace
+	set $namespace="%SYS"
+	#dim ss As Security.System  = ##class(Security.System).%OpenId("SYSTEM")
+	zn cns
+	if resave {
+		set @GN@(level,"Security.System","PasswordPattern")=ss.PasswordPattern
+		set @GN@(level,"Security.System","AuditEnabled")=ss.AuditEnabled
+		set @GN@(level,"Security.System","InactiveLimit")=ss.InactiveLimit
+	}
+	if pFileName'="" {
+		kill list
+		set list(GN_".GBL")=""
+		set st=$SYSTEM.OBJ.Export(.list, pFileName)
+		if st write !,pFileName
+
+	}
+}
+
+/// Save Properties
+/// do ##class(appmsw.security.lockdown).SaveProperties(0,"Security.Applications",.out)
+ClassMethod SaveProperties(resave = 0, obj As %String = "Security.Services", out, level = "minimum", GN = {..#GN}) As %Status
+{
+	set cns=$namespace
+	new $namespace
+	set $namespace="%SYS"
+	set sql="select NameLowerCase FROM "_obj
+	write !,"Show properties: "_sql
+	set tSC=$$$OK
+	set result=##CLASS(%ResultSet).%New("%DynamicQuery:SQL")
+	set tSC=result.Prepare(sql)
+	set:tSC tSC=result.Execute()
+	if '$$$ISOK(tSC) {
+		set text="Service configuration error :"_$SYSTEM.Status.GetErrorText(tSC) write !,text
+		QUIT $$$ERROR(text)
+	}
+	else {
+		while result.Next() {
+			set name=result.Data("NameLowerCase")
+			set tSC=$classmethod(obj,"Get",name,.prop)
+			set out(name,"Enabled")=prop("Enabled")
+			set out(name,"AutheEnabled")=prop("AutheEnabled")
+		}
+	}
+	set i=""
+	for ii=1:1 { set i=$o(out(i)) quit:i=""
+		write !
+		zwrite out(i)
+	}
+	if resave, GN'="" zn cns merge @GN@(level,obj)=out write $na(@GN@(level,obj))
+	quit tSC
+}
+
+/// Save this Project
+/// do ##class(appmsw.security.lockdown).SaveProj("d:\_proj\_mygirhub\isc-apptools-lockdown-2\isc-apptools-lockdown\")
+ClassMethod SaveProj(path) As %Status
+{
+ //	---------------- save
+	zpm "generate "_path_"src\ -export 00000,appmsw"
+	kill list
+	set list("appmsw.security.lockdown.GBL")=""
+	set st=$SYSTEM.OBJ.Export(.list, path_"src\gbl\appmsw.security.lockdown.xml")
+
+ //------- load
+ ;zn "%SYS" d ##class(Security.SSLConfigs).Create("z") s r=##class(%Net.HttpRequest).%New(),r.Server="pm.community.intersystems.com",r.SSLConfiguration="z" d r.Get("/packages/zpm/latest/installer"),$system.OBJ.LoadStream(r.HttpResponse.Data,"c")
+ ;zpm "load d:\_proj\_mygirhub\isc-apptools-lockdown-2\isc-apptools-lockdown"
+ ;do ##class(appmsw.security.lockdown).SaveSecLevel(1,"normal",,"d:\_proj\!\normal.xml")
 }
 
 }

@@ -5,7 +5,14 @@
 [![Habr](https://img.shields.io/badge/Available%20article%20on-Intersystems%20Community-orange)](https://community.intersystems.com/post/increasing-security-intersystems-iris-dbms)
 [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A program to enhance security and create users and add SQL privileges.
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/SergeyMi37/apptools-admin">
+
+A program to change the security level and create users and add SQL privileges.
+
+## What's new
+The ability to change the security level not only to lockdown, but also to minimum and normal has been implemented.
+Added methods for saving the current security level to the global and applying these settings to other instances
+
 
 ## Installation with ZPM
 
@@ -74,14 +81,47 @@ For ECP configurations, you need to add the addresses of all servers and clients
         sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
         AuthLDAP = 1 In addition to the password, also enable LDAP authentication
 
-Apply Security settings to "LockDown"
-```
-USER>do ##class(appmsw.security.lockdown).Apply("NewPassword123",.msg,1,1,0,0)
-```
+### Apply Security settings to "LockDown"
+
+USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","NewPassword123")
+
+or equivalent
+
+USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown" -Dzpm.newpasswd=NewPassword123"
+
+
+### Apply Security settings to "normal"
+
+USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("normal","NewPassword123")
+
+or equivalent
+
+USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=normal" -Dzpm.newpasswd=NewPassword123"
+
+
+
+### Apply Security settings to "minimum"
+
+USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("minimum","SYS")
+
+or equivalent
+
+USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=minimum" -Dzpm.newpasswd=SYS"
+
+
+## Added methods for saving the current security level to the global and applying these settings to other instances.
+
+To do this, you need to save the current applied security settings: the values ​​of the Enabled and AutheEnabled parameters in the predefined objects of the Security.Applications, Security.Services and Security.System classes in the global by running the command
+
+do ##class(appmsw.security.lockdown).SaveSecLevel(1, "Custom" ,, "d:\!\Custom.xml")
+
+Import this Custom.xml global to the target instance and apply this applied security level there with the command
+
+do ##class(appmsw.security.lockdown).SetSecurityLevel("Custom","Custom321level")
+
 or
-```
-USER>zpm "install isc-apptools-lockdown -Dzpm.newpasswd=NewPassword123"
-```
+
+zpm "install isc-apptools-lockdown -Dzpm.securitylevel=Custom -Dzpm.newpasswd=Custom321level"
 
 All other features of the interface part of the software solution can be found in the 
 [document](https://community.intersystems.com/post/increasing-security-intersystems-iris-dbms)
