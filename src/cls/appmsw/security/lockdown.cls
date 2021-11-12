@@ -504,8 +504,8 @@ ClassMethod SaveSecLevel(resave = 0, level = "minimum", GN = {..#GN}, pFileName 
 {
 	if '$lf($lb("minimum","normal","lockdown"),level) set GN=..#GNcustom
 	KILL @GN@(level)
-	do ##class(appmsw.security.lockdown).SaveProperties(resave,"Security.Services",.out,level)
-	do ##class(appmsw.security.lockdown).SaveProperties(resave,"Security.Applications",.out,level)
+	do ##class(appmsw.security.lockdown).SaveProperties(resave,"Security.Services",.out,level,GN)
+	do ##class(appmsw.security.lockdown).SaveProperties(resave,"Security.Applications",.out,level,GN)
 	set cns=$namespace
 	new $namespace
 	set $namespace="%SYS"

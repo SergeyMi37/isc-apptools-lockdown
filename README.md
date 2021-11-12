@@ -5,13 +5,13 @@
 [![Habr](https://img.shields.io/badge/Available%20article%20on-Intersystems%20Community-orange)](https://community.intersystems.com/post/increasing-security-intersystems-iris-dbms)
 [![license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/SergeyMi37/apptools-admin">
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/SergeyMi37/isc-apptools-lockdown">
 
 A program to change the security level and create users and add SQL privileges.
 
 ## What's new
 The ability to change the security level not only to lockdown, but also to minimum and normal has been implemented.
-Added methods for saving the current security level to the global and applying these settings to other instances
+Added methods for saving the custom security level to the global and applying these settings to other instances
 
 
 ## Installation with ZPM
@@ -113,7 +113,7 @@ USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=minimum" -Dzpm.newpa
 
 To do this, you need to save the current applied security settings: the values ​​of the Enabled and AutheEnabled parameters in the predefined objects of the Security.Applications, Security.Services and Security.System classes in the global by running the command
 
-do ##class(appmsw.security.lockdown).SaveSecLevel(1, "Custom" ,, "d:\!\Custom.xml")
+do ##class(appmsw.security.lockdown).SaveSecLevel(1,"Custom",,"d:\!\Custom.xml")
 
 Import this Custom.xml global to the target instance and apply this applied security level there with the command
 

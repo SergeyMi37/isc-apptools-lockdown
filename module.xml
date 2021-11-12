@@ -3,7 +3,7 @@
   <Document name="isc-apptools-lockdown.ZPM">
     <Module>
       <Name>isc-apptools-lockdown</Name>
-      <Version>1.0.10</Version>
+      <Version>1.0.11</Version>
       <Description>A program to change the security level and create users and add SQL privileges.</Description>
 	  <Keywords>lockdown admin</Keywords>
 		<Author>
@@ -32,7 +32,7 @@ USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=minimum -Dzpm.newpas
 
 ## Added methods for saving the current security level to the global and applying these setti to other instances.
 To do this, you need to save the current applied security settings: the values ​​of the Enabled and AutheEnabled parameters in the predefined objects of the Security.Applications, Security.Services and Security.System classes in the global by running the command
-do ##class(appmsw.security.lockdown).SaveSecLevel(1, "Custom" ,, "d:\!\Custom.xml")
+do ##class(appmsw.security.lockdown).SaveSecLevel(1,"Custom",,"d:\!\Custom.xml")
 Import this Custom.xml global to the target instance and apply this applied security level there with the command
 do ##class(appmsw.security.lockdown).SetSecurityLevel("Custom","Custom321level")
 or
