@@ -87,7 +87,7 @@ USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","NewPasswo
 
 or equivalent
 
-USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown" -Dzpm.newpasswd=NewPassword123"
+USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown -Dzpm.newpasswd=NewPassword123"
 
 
 ### Apply Security settings to "normal"
@@ -96,7 +96,7 @@ USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("normal","NewPassword
 
 or equivalent
 
-USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=normal" -Dzpm.newpasswd=NewPassword123"
+USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=normal -Dzpm.newpasswd=NewPassword123"
 
 
 
@@ -106,7 +106,7 @@ USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("minimum","SYS")
 
 or equivalent
 
-USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=minimum" -Dzpm.newpasswd=SYS"
+USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=minimum -Dzpm.newpasswd=SYS"
 
 
 ## Added methods for saving the current security level to the global and applying these settings to other instances.
