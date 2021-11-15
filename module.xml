@@ -3,8 +3,8 @@
   <Document name="isc-apptools-lockdown.ZPM">
     <Module>
       <Name>isc-apptools-lockdown</Name>
-      <Version>1.0.12</Version>
-      <Description>A program to change the security level and create users and add SQL privileges.</Description>
+      <Version>1.0.13</Version>
+      <Description>Program for changing the security level of the system.</Description>
 	  <Keywords>lockdown admin</Keywords>
 		<Author>
 		<Person>Mikhaylenko Sergey</Person>

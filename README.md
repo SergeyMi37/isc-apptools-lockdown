@@ -7,7 +7,7 @@
 
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/SergeyMi37/isc-apptools-lockdown">
 
-A program to change the security level and create users and add SQL privileges.
+Program for changing the security level of the system.
 
 ## What's new
 The ability to change the security level not only to lockdown, but also to minimum and normal has been implemented.
