@@ -61,26 +61,6 @@ You can replace the shared password if the password of the predefined system use
 USER>do ##class(appmsw.security.lockdown).ChangePassword("NewPass231",##class(appmsw.security.lockdown).GetPreparedUsers())
 ```
 
-Increase system security to LockDown
-The method disables services and applications as in LockDown. Deletes the namespaces "DOCBOOK", "ENSDEMO", "SAMPLES"
-The method enables auditing and configures registration of all events in the portal, except for switching the log
-and modification of system properties
-For all predefined users, change the password and change the properties as in LockDown
-        newPassword - new single password instead of SYS. For LockDown security level, it has an 8.32ANP pattern
-        sBindings = 1 Service% service_bindings enable
-        sCachedirect = 1 Service% service_cachedirect enable
-        InactiveLimit = 90
-        DemoDelete = 0 Demoens, Samples namespaces are being deleted
-		
-        AuditOn = 1
-        sECP = 1 Service% service_ecp enable
-        sBindingsIP - list of ip addresses with a semicolon for which to allow CacheStudio connection.
-
-For ECP configurations, you need to add the addresses of all servers and clients to allow connection on% Net.RemoteConnection to remove "abandoned" tasks
-        sCachedirectIP - list of ip addresses with a semicolon for which to allow legacy applications connection.
-        sECPIP - list of ip addresses with a semicolon for which to allow connection to the ECP server.
-        AuthLDAP = 1 In addition to the password, also enable LDAP authentication
-
 ### Apply Security settings to "LockDown"
 
 USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","NewPassword123")
@@ -123,6 +103,3 @@ or
 
 zpm "install isc-apptools-lockdown -Dzpm.securitylevel=Custom -Dzpm.newpasswd=Custom321level"
 
-All other features of the interface part of the software solution can be found in the 
-[document](https://community.intersystems.com/post/increasing-security-intersystems-iris-dbms)
- or in an [article of a Russian resource](https://habr.com/en/post/436042/)
