@@ -3,7 +3,7 @@
   <Document name="isc-apptools-lockdown.ZPM">
     <Module>
       <Name>isc-apptools-lockdown</Name>
-      <Version>1.0.14</Version>
+      <Version>1.0.15</Version>
       <Description>Program for changing the security level of the system.</Description>
 	  <Keywords>lockdown admin</Keywords>
 		<Author>
@@ -51,7 +51,21 @@ zpm "install isc-apptools-lockdown -Dzpm.securitylevel=Custom -Dzpm.newpasswd=Cu
 		  <Arg>${newpasswd}</Arg>
         </Invoke>
       </Invokes>
-	  <AfterInstallMessage>You can apply security settings to "LockDown": zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown -Dzpm.newpasswd=NewPassword123"</AfterInstallMessage>
+<AfterInstallMessage>You can apply security settings to "LockDown":
+&#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","NewPassword123")
+&#13;or equivalent
+&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown -Dzpm.newpasswd=NewPassword123"
+&#10;
+&#13;Apply Security settings to "normal"
+&#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("normal","NewPassword123")
+&#13;or equivalent
+&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=normal -Dzpm.newpasswd=NewPassword123"
+&#10;
+&#13;Apply Security settings to "minimum"
+&#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("minimum","SYS")
+&#13;or equivalent
+&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=minimum -Dzpm.newpasswd=SYS"
+</AfterInstallMessage>
 	  </Module>
   </Document>
 </Export>
