@@ -52,15 +52,13 @@ zpm "install isc-apptools-lockdown -Dzpm.securitylevel=Custom -Dzpm.newpasswd=Cu
         </Invoke>
       </Invokes>
 <AfterInstallMessage>You can apply security settings to "LockDown":
-&#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","NewPassword123")
+&#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","NewPass2")
 &#13;or equivalent
-&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown -Dzpm.newpasswd=NewPassword123"
-&#10;
+&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=lockdown -Dzpm.newpasswd=NewPass2"
 &#13;Apply Security settings to "normal"
 &#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("normal","NewPassword123")
 &#13;or equivalent
-&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=normal -Dzpm.newpasswd=NewPassword123"
-&#10;
+&#13;USER>zpm "install isc-apptools-lockdown -Dzpm.securitylevel=normal -Dzpm.newpasswd=NewPass2"
 &#13;Apply Security settings to "minimum"
 &#13;USER>do ##class(appmsw.security.lockdown).SetSecurityLevel("minimum","SYS")
 &#13;or equivalent
