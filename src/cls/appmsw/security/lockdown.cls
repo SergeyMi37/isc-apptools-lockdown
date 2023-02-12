@@ -6,6 +6,8 @@ Parameter GN = "^appmsw.security.lockdown";
 
 Parameter GNcustom = "^appmsw.security.custom";
 
+Parameter DefaultUserList = "Admin,CSPSystem,IAM,SuperUser,UnknownUser,_Ensemble,_SYSTEM";
+
 /// do ##class(appmsw.security.lockdown).SetSecurityLevel("minimum","SYS")
 /// do ##class(appmsw.security.lockdown).SetSecurityLevel("normal","Normal321level")
 /// do ##class(appmsw.security.lockdown).SetSecurityLevel("lockdown","Lockdown321level")
@@ -295,7 +297,28 @@ ClassMethod Apply(newPassword = "", Warn, sBindings = "", sCachedirect = "", Ina
 /// do ##class(appmsw.security.lockdown).GetPreparedUsers()
 ClassMethod GetPreparedUsers() As %String
 {
-  quit "Admin,CSPSystem,IAM,SuperUser,UnknownUser,_Ensemble,_SYSTEM"
+  	Quit:$Data(%zLockDown("users"), users) users
+	Quit ..#DefaultUserList
+}
+
+ClassMethod PrepareUsers(users As %String = {..#DefaultUserList}, exclude As %String = "") As %Status
+{
+	If exclude = "" Set %zLockDown("users") = users Quit $$$OK
+
+	Set lbUsers = $ListFromString(users), lbExclude = $ListFromString(exclude), ptr = 0, prepareUsers = ""
+
+	While $ListNext(lbUsers, ptr, user) {
+		Set:'$LISTFIND(lbExclude, user) $Piece(prepareUsers, ",", $Increment(pos)) = user
+	}
+
+	Set %zLockDown("users") = prepareUsers
+	Quit $$$OK
+}
+
+ClassMethod ResetPreparedUsersList() As %Status
+{
+	Kill %zLockDown("users")
+	Quit $$$OK
 }
 
 /// Change password for userlist
@@ -576,4 +599,3 @@ ClassMethod SaveProj(path) As %Status
 }
 
 }
-
